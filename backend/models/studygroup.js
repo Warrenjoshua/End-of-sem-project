@@ -1,48 +1,75 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
+const User = require('./User');
 
-const studyGroupSchema = new mongoose.Schema({
+const StudyGroup = sequelize.define('StudyGroup', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   name: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(100),
+    allowNull: false
   },
   courseName: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    field: 'course_name'
   },
   courseCode: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    field: 'course_code'
   },
   faculty: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(100),
+    allowNull: false
   },
   description: {
-    type: String,
-    required: true
+    type: DataTypes.TEXT,
+    allowNull: false
   },
   meetingLocation: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    field: 'meeting_location'
   },
   meetingType: {
-    type: String,
-    enum: ['physical', 'online'],
-    default: 'physical'
+    type: DataTypes.ENUM('physical', 'online'),
+    defaultValue: 'physical',
+    field: 'meeting_type'
   },
-  leader: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  members: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
+  leaderId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'leader_id',
+    references: {
+      model: User,
+      key: 'id'
+    }
   }
+}, {
+  tableName: 'study_groups',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false
 });
 
-module.exports = mongoose.model('StudyGroup', studyGroupSchema);
+// Define associations
+StudyGroup.belongsTo(User, { as: 'leader', foreignKey: 'leaderId' });
+StudyGroup.belongsToMany(User, { 
+  through: 'group_members', 
+  as: 'members',
+  foreignKey: 'group_id',
+  otherKey: 'user_id',
+  timestamps: false
+});
+User.belongsToMany(StudyGroup, { 
+  through: 'group_members', 
+  as: 'joinedGroups',
+  foreignKey: 'user_id',
+  otherKey: 'group_id'
+});
+
+module.exports = StudyGroup;
