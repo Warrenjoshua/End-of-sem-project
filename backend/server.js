@@ -17,16 +17,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MySQL
-connectDB();
-
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/groups', require('./routes/groupRoutes'));
-app.use('/api/sessions', require('./routes/sessionRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/auth', require('./routes/authroutes'));
+app.use('/api/groups', require('./routes/grouproutes'));
+app.use('/api/sessions', require('./routes/sessionroutes'));
+app.use('/api/admin', require('./routes/adminroutes'));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Connect to MySQL and start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
