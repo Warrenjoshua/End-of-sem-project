@@ -19,14 +19,14 @@ router.get('/stats', async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const totalGroups = await StudyGroup.countDocuments();
-    
+
     // Most active courses
     const courseStats = await StudyGroup.aggregate([
       { $group: { _id: '$courseName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 }
     ]);
-    
+
     res.json({
       totalUsers,
       totalGroups,
