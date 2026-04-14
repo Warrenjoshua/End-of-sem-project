@@ -1,34 +1,65 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
+const StudyGroup = require('./StudyGroup');
+const User = require('./User');
 
-const studySessionSchema = new mongoose.Schema({
-  group: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'StudyGroup',
-    required: true
+const StudySession = sequelize.define('StudySession', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  groupId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'group_id',
+    references: {
+      model: StudyGroup,
+      key: 'id'
+    }
   },
   title: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(200),
+    allowNull: false
   },
-  description: String,
+  description: {
+    type: DataTypes.TEXT
+  },
   date: {
-    type: Date,
-    required: true
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+    field: 'session_date'
   },
   time: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    field: 'session_time'
   },
-  location: String,
-  meetingLink: String,
+  location: {
+    type: DataTypes.STRING(255)
+  },
+  meetingLink: {
+    type: DataTypes.STRING(500),
+    field: 'meeting_link'
+  },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'created_by',
+    references: {
+      model: User,
+      key: 'id'
+    }
   }
+}, {
+  tableName: 'study_sessions',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false
 });
 
-module.exports = mongoose.model('StudySession', studySessionSchema);
+StudySession.belongsTo(StudyGroup, { foreignKey: 'groupId' });
+StudySession.belongsTo(User, { as: 'creator', foreignKey: 'createdBy' });
+StudyGroup.hasMany(StudySession, { foreignKey: 'groupId' });
+
+module.exports = StudySession;
